@@ -12,6 +12,9 @@
 
 
 # This is the Gale-Shapley algorithm we shared on Github. We modified it so now it returns the number of proposals made instead of a stable matching.
+
+from itertools import permutations, product
+
 def gale_shapley(men_preferences, women_preferences):
     n = len(men_preferences)
 
@@ -56,12 +59,43 @@ def gale_shapley(men_preferences, women_preferences):
 
 
 def instance_generator(women_preference):
-	"""
-	:women_preference: A list of lists that describe each women's preference
-	:return: A tuple (Dict, float). See details at the beginning of this file. 
-	"""
-	# TODO: your code goes here
-	pass
+    """
+    :women_preference: A list of lists that describe each women's preference
+    :return: A tuple (Dict, float). See details at the beginning of this file. 
+    """
+    d = {}
+    total_proposals = 0
+
+    num_ppl = len(women_preference)
+    # generate num_ppl instances
+    perm_tuples = list(permutations([i for i in range(num_ppl)]))
+    perm_list = [list(pref) for pref in perm_tuples] #24 permutations
+    num_instances = len(perm_list)**num_ppl #24^4 = 331776
+    men_preference = list(product(perm_list, repeat=4))
+
+    for _, men_preference in enumerate(men_preference):
+        # Make a copy of women preferences for this instance
+        women_pref_copy = [list(pref) for pref in women_preference]
+        men_preference = [a for a in men_preference]
+
+        # Run Gale-Shapley algorithm and get the number of proposals
+        num_proposals = gale_shapley(men_preference, women_pref_copy)
+        total_proposals += num_proposals
+
+        # d[k]=m, would mean that m problem instances resulted in k proposals in total
+        if num_proposals in d:
+            d[num_proposals] += 1
+        else:
+            d[num_proposals] = 1
+
+    # Calculate the average number of proposals
+    average_proposals = total_proposals / num_instances
+    # for each instance, run gale_shapley and get the number of proposals
+    # add the number of proposals to the dictionary
+    # add the number of proposals to the average
+    # return the dictionary and the average 
+
+    return d, average_proposals
 
 # This is an example of the input. 
 def toy_test():
